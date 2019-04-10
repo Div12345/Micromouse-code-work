@@ -1,0 +1,39 @@
+readCurrent - Identify heading from IR readings - RETURNS GLOBAL HEADING
+gyroRead - Reads the turning speed and angle - DISPATCHES IT
+instantiateReflood - Reassigns distance value to all boxes in the maze through calcCenter
+instantiate - Initial assignment of distance and wall value to the entire maze
+resetToCoord - takes desiredCoord as arg and uses calcDist to assign distance value to entire maze
+calcDist - calculate the most optimistic distance between two coordinates in a grid taking (x,y), desired(x,y) as args - RETURNS DIST
+calcCenter - Returns the most optimistic distance between a given coordinate and a 2x2 square in the center
+bearingCoord - Takes the current coord and heading as arg and returns the next coord in the heading
+->orient - Takes the current coord and heading as arg and returns leastDir
+checkBounds - takes a coord as arg and returns if its is a permissible cell coordinate for the maze or not
+checkNeighs - Takes a coord as an input and 
+isDead - Takes a coord as arg and return whether its a dead end or not
+isEnd - 
+coordUpdate - 	INPUT: Coordindate to update, and a direction representing the wall to add
+		OUTPUT: Update to coordinate adding the wall provided as an argument 
+floodFillUpdate - 	INPUT: Current Robot coordinate
+			OUTPUT: Update maze for learned walls
+createInstruction - 	INPUT : Current coord, next coord, next head
+			OUTPUT: the change in angle required for reaching the desired coord
+executeInstruction - Execute command to turn by the required angle and move forward to the next cell
+floodFill - while the center is not reached, 
+		floodFillUpdate->orient->bearingCoord->(if the bot is moving->instructions pushed to the stack->executeInstruction)->
+		update nextCoord and nextHeading->if bot has moved->update global position variables
+		set global end as the current coordinate
+		
+isHeading - 	INPUT: A heading
+		OUTPUT: A boolean indicating if the robot is oriented that way
+turnError - 	INPUT: An error value for turning
+		OUTPUT: Put motor in forward/reverse for turning accoriding to error value
+
+turn - Turn to the desired heading by using gyro values and errors to achieve a precise turning
+-> Will have to changed majorly(Uses Encoder, even that not very efficient) -> moveDist - Moving straight by a particular distance
+motorMove - giving speed to the left and right motor as necessary 
+printMaze - Keep printing the current wall values of the maze to the serial monitor
+reflood - instantiateReflood -> Run floodFill with current information ->createSpeedQueue
+createSpeedQueue - Trace the maze back to the end creating instructions and adding them to the queue
+
+
+loop - read IR values-> floodfill till reaching goal -> floodfill till start point reached again -> reflood -> Keep executing instructions from stack
