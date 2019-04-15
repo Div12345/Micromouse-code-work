@@ -1,4 +1,4 @@
-readCurrent - Identify heading from IR readings - RETURNS GLOBAL HEADING
+readCurrent - Identify walls from IR readings - RETURNS wall reading
 gyroRead - Reads the turning speed and angle - DISPATCHES IT
 instantiateReflood - Reassigns distance value to all boxes in the maze through calcCenter
 instantiate - Initial assignment of distance and wall value to the entire maze
