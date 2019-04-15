@@ -205,7 +205,7 @@ byte readCurrent(){
       }
       //if the left sensor is tripped
       if(dispatch.irValues[5]>100){
-        //set west to 9
+        //set west to 8
         west = 8;
       }
       //Subtract the sum of north east and west from the value of wall reading
@@ -460,7 +460,7 @@ INPUT: Coord
 OUTPUT: An integer that is the least neighbor
 */
 int checkNeighs(coord Coord){
-  int minVal =  sizeof(maze)*sizeof(maze);
+  int minVal =  20;
   for(int i=0; i<sizeof(headings); i++){
     byte dir = headings[i];
     //if this dir is accessible
@@ -469,7 +469,7 @@ int checkNeighs(coord Coord){
       coord neighCoord = bearingCoord(Coord, dir);
       //Check the value of the accessible neighbor
       if (checkBounds(neighCoord)){
-        //if the neighbore is less than the current recording minimum value, update the minimum value
+        //if the neighbour is less than the current recording minimum value, update the minimum value
         //If minVal is null, set it right away, otherwise test
         if(maze[neighCoord.y][neighCoord.x].distance < minVal){minVal = maze[neighCoord.y][neighCoord.x].distance;}
       }
@@ -516,7 +516,7 @@ OUTPUT: Update to coordinate adding the wall provided as an argument
 void coordUpdate(coord coordinate, byte wallDir){
   if(checkBounds(coordinate)){
     if((maze[coordinate.y][coordinate.x].walls & wallDir) != 0){
-      maze[coordinate.y][coordinate.x].walls = maze[coordinate.y][coordinate.x].walls-wallDir;
+      maze[coordinate.y][coordinate.x].walls = maze[coordinate.y][coordinate.x].walls+wallDir;
     }
   }
 }
