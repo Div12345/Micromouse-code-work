@@ -1,4 +1,4 @@
-//Last Update -> 26-6-19
+//Last Update -> 21-7-19
 //Author : Divyesh Narayanan
 
 #include <QueueList.h>
@@ -51,6 +51,13 @@ coord currCoord = {0,0};
 coord globalCoord = {0,0};
 coord globalEnd = {0,0};
 byte globalHeading = 1;
+
+/* Requirement of the variable desiredlen -
+To keep track of the length of the "desired" array as declared in the loop, passed through the floodfill algo and used in function isEnd.
+This is required because the size of the array will be 4 when going to the center and 1 while returning,
+and the function needs to know which is the case.
+*/
+int desiredlen = 4;
 
 byte wallDistance = 100;//Change after checking - Basically a threshold past which it means that there isn't a wall immediately in that direction
 #define X 16
@@ -196,14 +203,15 @@ bool isDead(coord Coord){
 
 bool isEnd(coord Coord, coord DesiredArray[]){
   bool End = false;
-  for(int i=0; i<((sizeof(DesiredArray))/sizeof(coord));i++){
-    coord Desired = DesiredArray[i];
-    if(checkBounds(Coord)){
-      if((Coord.x == Desired.x)&&(Coord.y==Desired.y)){
-        End = true;
-      }
-    }
+  for(int i=0; i<desiredlen;i++){
+     coord Desired = DesiredArray[i];
+        if(checkBounds(Coord)){
+           if((Coord.x == Desired.x)&&(Coord.y==Desired.y)){
+              End = true;
+           }
+        }
   }
+
   return End;
 }
 
@@ -635,7 +643,7 @@ void loop() {
      Serial.println();
     }
   Serial.println();
-  
+  desiredlen = 4;
   coord desired[] = {{X/2-1,Y/2-1},{X/2-1,Y/2},{X/2,Y/2-1},{X/2,Y/2}};
   floodFill(desired, globalCoord, false);
 
@@ -672,6 +680,7 @@ void loop() {
   globalCoord.x=8;
   coord returnCoord[] = {{0,0}};
   resetToCoord(returnCoord[0]);
+  desiredlen = 1;
 
   Serial.println("Initial Distance Values");
 
