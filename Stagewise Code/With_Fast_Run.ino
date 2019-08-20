@@ -1,4 +1,4 @@
-//Last Update -> 14-8-19
+//Last Update -> 18-8-19
 //Author : Divyesh Narayanan
 
 /*
@@ -57,17 +57,18 @@ struct coord
 struct instruction
 {
   coord Pos;
-  float Heading;
+  byte Heading;
 };
 
 //Navigation info
-int Path=1;
+int Path=1;//To identify in FloodFill to which queue the instruction must be updated
+int PathFinal = 0; //Quickest path identified in IdentifyPath
 QueueList<instruction> instructions;
 QueueList<instruction> PathOne;
 QueueList<instruction> PathTwo;
 QueueList<instruction> PathOneF;//Refined Path One
 QueueList<instruction> PathTwoF;//Refined Path Two
-
+int r=0;
 
 struct entry
 {
@@ -584,26 +585,99 @@ void IdentifyPath(){
     Serial.println(len1);
     Serial.print("Length of Unrefined Path Two = ");
     Serial.println(len2);
-    int PathOneA[len1][2],PathTwoA[len2][2];
+    byte PathOneA[len1][3],PathTwoA[len2][3];
+    for(int a=0;a<len1;a++)
+        {
+        instruction i1 = PathOne.pop();
+        PathOneA[a][0] = i1.Pos.x;
+        PathOneA[a][1] = i1.Pos.y;
+        PathOneA[a][2] = i1.Heading;
+        }
+    for(int a=0;a<len1;a++)
+        {
+        instruction i2 = PathTwo.pop();
+        PathTwoA[a][0] = i1.Pos.x;
+        PathTwoA[a][1] = i1.Pos.y;
+        PathTwoA[a][2] = i1.Heading;
+        }
 
+    //PathOne Optimization
+    for(int a=0;a<(len1-1);a++)
+    {
+        if(a!=r)
+        continue;
 
+        r=a+1;
 
+        for(int b=(a+1);b<len1;b++)
+        {
+            if((PathOneA[a][0]==PathOneA[b][0])&&(PathOneA[a][1]==PathOneA[b][1]))
+            r=b;
+        }
+        //If there's no repetition of the coordinate
+        if(r==a+1)
+        {
+            //Create an instruction
+            instruction iA;
+            //Assign values to the instruction
+            iA.Pos.x = PathOneA[a][0];
+            iA.Pos.y = PathOneA[a][1];
+            iA.Heading = PathOneA[a][2];
+            //Insert the instruction into the PathOne queue for a refined set of instructions
+            PathOne.push(iA);
+        }
+    }
+    //debug print the set of instructions
+    //do it
 
+    //reset r
+    r=0;
 
+    //PathTwo Optimization
+    for(int a=0;a<(len2-1);a++)
+    {
+        if(a!=r)
+        continue;
 
+        r=a+1;
 
+        for(int b=(a+1);b<len2;b++)
+        {
+            if((PathTwoA[a][0]==PathTwoA[b][0])&&(PathTwoA[a][1]==PathTwoA[b][1]))
+            r=b;
+        }
+        //If there's no repetition of the coordinate
+        if(r==a+1)
+        {
+            //Create an instruction
+            instruction iA;
+            //Assign values to the instruction
+            iA.Pos.x = PathTwoA[a][0];
+            iA.Pos.y = PathTwoA[a][1];
+            iA.Heading = PathTwoA[a][2];
+            //Insert the instruction into the PathTwo queue for a refined set of instructions
+            PathTwo.push(iA);
+        }
+    }
 
+    //debug print the set of instructions
+    //do it
 
+    //identify which queue has lesser instructions
+    Rlen1 = PathOne.count();
+    Rlen2 = PathTwo.count();
 
+    if(Rlen1<Rlen2)
+    PathFinal = 1;
+    else
+    PathFinal = 2;
 
-
-
-
-
-
+    //If the Shortest Path is PathOne then go direct to fast run
+    //If the Shortest Path is PathTwo, then inversion of the instructions must be done
 
 
 }
+{
 /*void reflood(){
   //Refill the maze for most optimistic values, but now the maze has walls
   instantiateReflood();
@@ -663,7 +737,7 @@ void createSpeedQueue(){
 
 
 */
-
+}
 void loop() {
   // put your main code here, to run repeatedly:
   Serial.println("Test Maze");
