@@ -63,7 +63,7 @@ struct instruction //initial data structure with a coord and a heading
 //Navigation info
 int Path=1;//To identify in FloodFill to which queue the instruction must be updated
 int PathFinal = 0; //Quickest path identified in IdentifyPath
-QueueList<instruction> instructions;
+
 QueueList<instruction> PathOne;
 QueueList<instruction> PathTwo;
 
@@ -73,7 +73,7 @@ struct finalInstruct //Data structure for usage of the final queue
 {
     byte turnAngle;//Angle by which the bot must turn
     byte rep;//Repetitions of the command
-}
+};
 
 QueueList<finalInstruct> FinalQueue;
 
@@ -102,7 +102,7 @@ byte wallDistance = 100;//Change after checking - Basically a threshold past whi
 entry maze[Y][X];
 //N,S,E,W
 byte headings[] = {1,2,4,8};
-{
+
 byte Test[16][16] = {{14,10,3,2,3,2,2,6,10,3,3,3,3,3,3,6},{12,12,10,5,10,5,12,12,12,11,2,3,3,3,3,5},{12,9,5,10,5,10,4,12,12,11,1,3,3,3,3,6},{8,6,10,5,10,5,12,12,12,14,10,3,3,3,3,5},{12,9,5,10,5,10,5,9,5,8,4,10,3,3,3,6},{8,3,3,1,3,0,7,14,10,5,12,8,7,10,3,4},{9,2,7,10,6,9,7,9,1,2,4,13,10,5,10,5},{14,12,10,5,8,3,6,10,6,13,9,3,5,10,1,6},{8,4,9,6,12,10,5,9,1,2,2,7,10,1,3,5},{12,9,7,12,8,5,14,10,6,13,12,10,0,2,2,6},{12,10,3,5,12,10,4,13,8,3,4,12,12,13,13,12},{12,9,3,6,12,12,8,6,9,6,13,12,9,3,6,13},{9,6,11,4,12,12,12,9,6,9,6,9,3,6,9,6},{10,5,10,5,12,8,4,14,9,6,9,2,6,9,2,4},{8,7,9,6,12,12,12,8,3,5,14,13,9,3,5,12},{9,3,3,5,9,1,5,9,3,3,1,3,3,3,3,5}};
 
 void moveDist(float pos)
@@ -307,7 +307,7 @@ int checkNeighs(coord Coord){
   */
   return minVal;
 }
-}
+
 
 void floodFillUpdate(coord currCoord, coord desired[])
 {
@@ -453,7 +453,8 @@ byte orient(coord currCoord, byte heading){
   }
   /*Serial.println();
   Serial.println(leastDir);
-  */return leastDir;
+  */
+  return leastDir;
 }
 
 //Returns an instruction which contains the information on how it has to turn and how much to move forward according to given info
@@ -586,7 +587,8 @@ void instantiateReflood(){
 
 void IdentifyPath(){
     int len1=0, len2=0;
-    len1=PathOne.count;
+    len1 = PathOne.count();
+    len2 = PathTwo.count();
     //debug
     Serial.print("Length of Unrefined Path One = ");
     Serial.println(len1);
@@ -604,9 +606,9 @@ void IdentifyPath(){
     for(int a=0;a<len1;a++)
         {
         instruction i2 = PathTwo.pop();
-        PathTwoA[a][0] = i1.Pos.x;
-        PathTwoA[a][1] = i1.Pos.y;
-        PathTwoA[a][2] = i1.Heading;
+        PathTwoA[a][0] = i2.Pos.x;
+        PathTwoA[a][1] = i2.Pos.y;
+        PathTwoA[a][2] = i2.Heading;
         }
 
     //PathOne Optimization
@@ -672,8 +674,8 @@ void IdentifyPath(){
     //do it
 
     //identify which queue has lesser instructions
-    Rlen1 = PathOne.count();
-    Rlen2 = PathTwo.count();
+    int Rlen1 = PathOne.count();
+    int Rlen2 = PathTwo.count();
 
     int counter =0;//For keeping track of the no. of continuous rep.s of the same dir. for creation of final instructions
     //debug review direc initial value
@@ -687,7 +689,7 @@ void IdentifyPath(){
         turn = identifyAngle(direc, PathOneA[0][3]);
         direc = PathOneA[0][3];
         counter=1;
-        for(int a=1;a<len1;a++)
+        for(int a=1;a<Rlen1;a++)
         {
             //Turn angle must also be identified
             byte iturn = identifyAngle(direc, PathOneA[a][3]);
@@ -723,7 +725,7 @@ void IdentifyPath(){
         turn = identifyAngle(direc, PathTwoA[0][3]);
         direc = PathTwoA[0][3];
         counter=1;
-        for(int a=1;a<len1;a++)
+        for(int a=1;a<Rlen2;a++)
         {
             //Turn angle must also be identified
             byte iturn = identifyAngle(direc, PathTwoA[a][3]);
@@ -733,7 +735,8 @@ void IdentifyPath(){
 
             else//if the direction is changing then the previous instruction must be added to the final queue
             {
-
+                //Interim data object
+                finalInstruct fi;
                 //Turn angle must be inverted for the sake of easiness to convert to final queue
                 fi.turnAngle = invertAngle(turn);
                 fi.rep = counter;
@@ -747,9 +750,9 @@ void IdentifyPath(){
                 direc = PathTwoA[a][3];
             }
         }
-
+        int Rlen3 = iStack.count();
         //Now the inversion of the instructions to a queue to be followed can be done
-        for(int a=0;a<len1;a++)
+        for(int a=0;a<Rlen3;a++)
         {
             //Interim data object
             finalInstruct fi;
@@ -775,7 +778,7 @@ void FastRun()
 
 }
 
-{
+
 /*void reflood(){
   //Refill the maze for most optimistic values, but now the maze has walls
   instantiateReflood();
@@ -835,7 +838,7 @@ void createSpeedQueue(){
 
 
 */
-}
+
 void loop() {
   // put your main code here, to run repeatedly:
   Serial.println("Test Maze");
