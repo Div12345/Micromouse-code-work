@@ -1,4 +1,4 @@
-//Last Update -> 18-8-19
+//Last Update -> 26-8-19
 //Author : Divyesh Narayanan
 
 /*
@@ -54,7 +54,7 @@ struct coord
   byte y;
 };
 
-struct instruction
+struct instruction //initial data structure with a coord and a heading
 {
   coord Pos;
   byte Heading;
@@ -66,9 +66,16 @@ int PathFinal = 0; //Quickest path identified in IdentifyPath
 QueueList<instruction> instructions;
 QueueList<instruction> PathOne;
 QueueList<instruction> PathTwo;
-QueueList<instruction> PathOneF;//Refined Path One
-QueueList<instruction> PathTwoF;//Refined Path Two
+
 int r=0;
+
+struct finalInstruct //Data structure for usage of the final queue
+{
+    byte turnAngle;//Angle by which the bot must turn
+    byte rep;//Repetitions of the command
+}
+
+QueueList<finalInstruct> FinalQueue;
 
 struct entry
 {
@@ -588,6 +595,7 @@ void IdentifyPath(){
     byte PathOneA[len1][3],PathTwoA[len2][3];
     for(int a=0;a<len1;a++)
         {
+        //debug This pop might not work
         instruction i1 = PathOne.pop();
         PathOneA[a][0] = i1.Pos.x;
         PathOneA[a][1] = i1.Pos.y;
@@ -667,16 +675,106 @@ void IdentifyPath(){
     Rlen1 = PathOne.count();
     Rlen2 = PathTwo.count();
 
+    int counter =0;//For keeping track of the no. of continuous rep.s of the same dir. for creation of final instructions
+    //debug review direc initial value
+    byte direc=1;//For keeping track of the direction of the above stated purpose
+    byte turn =0;//Angle to be turned
     if(Rlen1<Rlen2)
-    PathFinal = 1;
+    {   PathFinal = 1;
+        //If the Shortest Path is PathOne, create the final run instructions
+        direc = globalHeading;
+
+        turn = identifyAngle(direc, PathOneA[0][3]);
+        direc = PathOneA[0][3];
+        counter=1;
+        for(int a=1;a<len1;a++)
+        {
+            //Turn angle must also be identified
+            byte iturn = identifyAngle(direc, PathOneA[a][3]);
+
+            if(iturn==0)
+                counter++;
+
+            else//if the direction is changing then the previous instruction must be added to the final queue
+            {
+                //Interim data object
+                finalInstruct fi;
+                fi.turnAngle = turn;
+                fi.rep = counter;
+
+                //Add to queue
+                FinalQueue.push(fi);
+
+                //Reset variables
+                counter = 1;
+                turn = iturn;
+                direc = PathOneA[a][3];
+            }
+        }
+    }
     else
-    PathFinal = 2;
+    {   //Here additionally an interim stack(Makes inverting of instructions easier) must be introduced as the path if from center to start
+        StackList<finalInstruct> iStack;
 
-    //If the Shortest Path is PathOne then go direct to fast run
-    //If the Shortest Path is PathTwo, then inversion of the instructions must be done
+        PathFinal = 2;
+        //If the Shortest Path is PathOne, create the final run instructions
+        direc = globalHeading;
 
+        turn = identifyAngle(direc, PathTwoA[0][3]);
+        direc = PathTwoA[0][3];
+        counter=1;
+        for(int a=1;a<len1;a++)
+        {
+            //Turn angle must also be identified
+            byte iturn = identifyAngle(direc, PathTwoA[a][3]);
+
+            if(iturn==0)
+                counter++;
+
+            else//if the direction is changing then the previous instruction must be added to the final queue
+            {
+
+                //Turn angle must be inverted for the sake of easiness to convert to final queue
+                fi.turnAngle = invertAngle(turn);
+                fi.rep = counter;
+
+                //Add to queue
+                iStack.push(fi);
+
+                //Reset variables
+                counter = 1;
+                turn = iturn;
+                direc = PathTwoA[a][3];
+            }
+        }
+
+        //Now the inversion of the instructions to a queue to be followed can be done
+        for(int a=0;a<len1;a++)
+        {
+            //Interim data object
+            finalInstruct fi;
+            fi = iStack.pop();
+            FinalQueue.push(fi);
+
+        }
+    }
+}
+
+byte identifyAngle(byte oldDir, byte newDir)
+{
 
 }
+
+byte invertAngle(byte a)
+{
+
+}
+
+void FastRun()
+{
+
+}
+
 {
 /*void reflood(){
   //Refill the maze for most optimistic values, but now the maze has walls
@@ -846,8 +944,10 @@ void loop() {
       }
      Serial.println();
     }
-  //Post FloodFill refining of the queues holding the paths
-
+  //Post FloodFill refining of the queues holding the paths and identifying the shortest path
+    IdentifyPath();
+  //Now that the final run instruction queue is prepared, go for the final fast run
+    FastRun();
 
   delay(50000);
   
