@@ -1,4 +1,4 @@
-//Last Update -> 26-8-19
+//Last Update -> 27-8-19
 //Author : Divyesh Narayanan
 
 /*
@@ -71,7 +71,7 @@ int r=0;
 
 struct finalInstruct //Data structure for usage of the final queue
 {
-    byte turnAngle;//Angle by which the bot must turn
+    int turnAngle;//Angle by which the bot must turn
     byte rep;//Repetitions of the command
 };
 
@@ -143,7 +143,9 @@ pinMode(R2,OUTPUT);
  instantiate();
 
 Serial.begin(9600);
-Serial.println(Test[6][11]);
+//debug
+Serial.println("Started"); 
+//Serial.println(Test[6][11]);
 delay(3000);
 }
 
@@ -394,7 +396,8 @@ byte orient(coord currCoord, byte heading){
   byte oppHead = oppHeading(heading);
   byte leastDir = heading;
   byte a= maze[currCoord.y][currCoord.x].walls;
-  Serial.println(a);
+  //debug
+  //Serial.println(a);
   //If there is a bitwise equivalence between the current heading and the cell's value, then the next cell is accessible
   //Setting this first gives first preference to proceeding straight
   if((a & heading) != heading){
@@ -456,78 +459,7 @@ byte orient(coord currCoord, byte heading){
   */
   return leastDir;
 }
-
-//Returns an instruction which contains the information on how it has to turn and how much to move forward according to given info
-//Make changes to this according to gyroscope and change 7.74 according to the distance to be moved forward
-/*instruction createInstruction(coord currCoord, coord nextCoord, byte nextHeading){
-  float change = 0.0;
-  switch(nextHeading){
-    case 1:
-      if(globalHeading==4){
-        change = -90.0;
-      }
-      if(globalHeading==8){
-        change = 90.0;
-      }
-      if(globalHeading==2){
-        change = 180.0;
-      }
-      break;
-    case 2:
-      if(globalHeading==4){
-        change = 90.0;
-      }
-      if(globalHeading==8){
-        change = -90.0;
-      }
-      if(globalHeading==1){
-        change = 180.0;
-      }
-      break;
-    case 4:
-      if(globalHeading==1){
-        change = 90.0;
-      }
-      if(globalHeading==2){
-        change = -90.0;
-      }
-      if(globalHeading==8){
-        change = 180.0;
-      }
-      break;
-    case 8:
-      if(globalHeading==1){
-        change = -90.0;
-      }
-      if(globalHeading==2){
-        change = 90.0;
-      }
-      if(globalHeading==4){
-        change = 180.0;
-      }
-      break;
-  }
-  float desiredHeading;
-  //float desiredHeading = dispatch.gyroVal+change;
-  //fix over or underflow
-
-  if(((desiredHeading<45.0)||(desiredHeading>315.0))){
-    desiredHeading=0.0;
-  }
-  if((desiredHeading>45.0)&&(desiredHeading<135.0)){
-    desiredHeading = 90.0;
-  }
-  if((desiredHeading>135.0)&&(desiredHeading<225.0)){
-    desiredHeading = 180.0;
-  }
-  if((desiredHeading>225.0)&&(desiredHeading<315.0)){
-    desiredHeading = 270.0;
-  }
-
-  instruction turnMove = {7.74, desiredHeading};
-  return turnMove;
-}
-
+/*
 //Executes the turn and moves forward as specified in the given instruction
 void executeInstruction(instruction instruct){
   turn(instruct.desiredHeading);
@@ -549,12 +481,12 @@ void floodFill(coord desired[], coord current, boolean isMoving){
     coord nextCoord = bearingCoord(currCoord, nextHeading);
 
     //debug
-    Serial.println("Next Coordinate - ");
+    /*Serial.println("Next Coordinate - ");
     Serial.print(nextCoord.x);
     Serial.print(",");
     Serial.println(nextCoord.y);
     Serial.println("-------");
-  
+    */
     //After executing the instruction update the values of the local and global variables
       currCoord = nextCoord;
       heading = nextHeading;
@@ -563,6 +495,14 @@ void floodFill(coord desired[], coord current, boolean isMoving){
       iP.Pos.x=nextCoord.x;
       iP.Pos.y=nextCoord.y;
       iP.Heading=nextHeading;
+
+      //debug
+    Serial.print(iP.Heading);
+    Serial.print(" ; ");
+    Serial.print(iP.Pos.x);
+    Serial.print(",");
+    Serial.println(iP.Pos.y);
+      
       if(Path==1)
       PathOne.push(iP);
       if(Path==2)
@@ -589,56 +529,90 @@ void IdentifyPath(){
     int len1=0, len2=0;
     len1 = PathOne.count();
     len2 = PathTwo.count();
+    
     //debug
     Serial.print("Length of Unrefined Path One = ");
     Serial.println(len1);
     Serial.print("Length of Unrefined Path Two = ");
     Serial.println(len2);
+    //debug Serial.println("UnRefined Path 1 - ");
     byte PathOneA[len1][3],PathTwoA[len2][3];
     for(int a=0;a<len1;a++)
-        {
-        //debug This pop might not work
+    {
         instruction i1 = PathOne.pop();
         PathOneA[a][0] = i1.Pos.x;
         PathOneA[a][1] = i1.Pos.y;
         PathOneA[a][2] = i1.Heading;
-        }
-    for(int a=0;a<len1;a++)
-        {
+        //debug
+        /*Serial.print(i1.Pos.x);
+        Serial.print(",");
+        Serial.print(i1.Pos.y);
+        Serial.print(" ; ");
+        Serial.println(i1.Heading);
+        */
+    }
+    
+    //debug Serial.println("UnRefined Path 2 - ");
+    for(int a=0;a<len2;a++)
+    {
         instruction i2 = PathTwo.pop();
         PathTwoA[a][0] = i2.Pos.x;
         PathTwoA[a][1] = i2.Pos.y;
         PathTwoA[a][2] = i2.Heading;
-        }
+        //debug
+        /*Serial.print(i2.Pos.x);
+        Serial.print(",");
+        Serial.print(i2.Pos.y);
+        Serial.print(" ; ");
+        Serial.println(i2.Heading);
+        */    
+    }
 
     //PathOne Optimization
+    r=0;
     for(int a=0;a<(len1-1);a++)
     {
         if(a!=r)
         continue;
-
-        r=a+1;
 
         for(int b=(a+1);b<len1;b++)
         {
             if((PathOneA[a][0]==PathOneA[b][0])&&(PathOneA[a][1]==PathOneA[b][1]))
             r=b;
         }
-        //If there's no repetition of the coordinate
-        if(r==a+1)
-        {
-            //Create an instruction
-            instruction iA;
-            //Assign values to the instruction
-            iA.Pos.x = PathOneA[a][0];
-            iA.Pos.y = PathOneA[a][1];
-            iA.Heading = PathOneA[a][2];
-            //Insert the instruction into the PathOne queue for a refined set of instructions
-            PathOne.push(iA);
-        }
+
+        //Create an instruction
+        instruction iA;
+        //Assign values to the instruction
+        iA.Pos.x = PathOneA[a][0];
+        iA.Pos.y = PathOneA[a][1];
+        iA.Heading = PathOneA[a][2];
+        //Insert the instruction into the PathOne queue for a refined set of instructions
+        PathOne.push(iA);
+        r++;
+        
     }
+
+    //Last instuction has to be added manually
+    instruction iL1;
+    iL1.Pos.x = PathOneA[len1-1][0];
+    iL1.Pos.y = PathOneA[len1-1][1];
+    iL1.Heading = PathOneA[len1-1][2];
+    //Insert the instruction into the PathTwo queue for a refined set of instructions
+    PathOne.push(iL1);
+    
     //debug print the set of instructions
-    //do it
+    /*Serial.println("First Set of instructions - ");
+    while(!(PathOne.isEmpty()))
+    {
+    instruction iA = PathOne.pop();
+    Serial.print(iA.Pos.x);
+    Serial.print(",");
+    Serial.print(iA.Pos.y);
+    Serial.print(" ; ");
+    Serial.println(iA.Heading);
+    }
+    */
 
     //reset r
     r=0;
@@ -649,53 +623,128 @@ void IdentifyPath(){
         if(a!=r)
         continue;
 
-        r=a+1;
-
         for(int b=(a+1);b<len2;b++)
         {
             if((PathTwoA[a][0]==PathTwoA[b][0])&&(PathTwoA[a][1]==PathTwoA[b][1]))
             r=b;
         }
-        //If there's no repetition of the coordinate
-        if(r==a+1)
-        {
-            //Create an instruction
-            instruction iA;
-            //Assign values to the instruction
-            iA.Pos.x = PathTwoA[a][0];
-            iA.Pos.y = PathTwoA[a][1];
-            iA.Heading = PathTwoA[a][2];
-            //Insert the instruction into the PathTwo queue for a refined set of instructions
-            PathTwo.push(iA);
-        }
+
+        //Create an instruction
+        instruction iA;
+        //Assign values to the instruction
+        iA.Pos.x = PathTwoA[a][0];
+        iA.Pos.y = PathTwoA[a][1];
+        iA.Heading = PathTwoA[a][2];
+        //Insert the instruction into the PathTwo queue for a refined set of instructions
+        PathTwo.push(iA);
+        r++;
+        
     }
+    //Last instuction has to be added manually
+    instruction iL2;
+    iL2.Pos.x = PathTwoA[len2-1][0];
+    iL2.Pos.y = PathTwoA[len2-1][1];
+    iL2.Heading = PathTwoA[len2-1][2];
+    //Insert the instruction into the PathTwo queue for a refined set of instructions
+    PathTwo.push(iL2);
 
     //debug print the set of instructions
-    //do it
-
+    /*Serial.println("Second Set of instructions - ");
+    while(!(PathTwo.isEmpty()))
+    {
+    instruction iA = PathTwo.pop();
+    Serial.print(iA.Pos.x);
+    Serial.print(",");
+    Serial.print(iA.Pos.y);
+    Serial.print(" ; ");
+    Serial.println(iA.Heading);
+    }
+*/
     //identify which queue has lesser instructions
     int Rlen1 = PathOne.count();
     int Rlen2 = PathTwo.count();
 
+    //debug
+    Serial.print("Length of Refined Path One = ");
+    Serial.println(Rlen1);
+    Serial.print("Length of Refined Path Two = ");
+    Serial.println(Rlen2);
+
+    //debug Serial.println("Refined Path 1 - ");
+    byte PathOneT[Rlen1][3],PathTwoT[Rlen2][3];
+    for(int a=0;a<Rlen1;a++)
+    {
+        instruction i1 = PathOne.pop();
+        PathOneT[a][0] = i1.Pos.x;
+        PathOneT[a][1] = i1.Pos.y;
+        PathOneT[a][2] = i1.Heading;
+        //debug
+        Serial.print(i1.Heading);
+        Serial.print(" ; ");
+        Serial.print(i1.Pos.x);
+        Serial.print(",");
+        Serial.println(i1.Pos.y);
+        
+    }
+    
+    //debug 
+    Serial.println("Refined Path 2 - ");
+    for(int a=0;a<Rlen2;a++)
+    {
+        instruction i2 = PathTwo.pop();
+        PathTwoT[a][0] = i2.Pos.x;
+        PathTwoT[a][1] = i2.Pos.y;
+        PathTwoT[a][2] = i2.Heading;
+        //debug
+        
+        Serial.print(i2.Heading);
+        Serial.print(" ; ");
+        Serial.print(i2.Pos.x);
+        Serial.print(",");
+        Serial.println(i2.Pos.y);
+        
+            
+    }
+    
     int counter =0;//For keeping track of the no. of continuous rep.s of the same dir. for creation of final instructions
     //debug review direc initial value
     byte direc=1;//For keeping track of the direction of the above stated purpose
-    byte turn =0;//Angle to be turned
+    int turn =0;//Angle to be turned
     if(Rlen1<Rlen2)
-    {   PathFinal = 1;
+    {   Serial.println("First path - ");
+        PathFinal = 1;
         //If the Shortest Path is PathOne, create the final run instructions
         direc = globalHeading;
-
-        turn = identifyAngle(direc, PathOneA[0][3]);
-        direc = PathOneA[0][3];
+        Serial.println(direc);
+        turn = identifyAngle(direc, PathOneT[0][2]);
+        Serial.println(turn);
+        direc = PathOneT[0][2];
+        Serial.println(direc);
         counter=1;
         for(int a=1;a<Rlen1;a++)
-        {
+        {   
             //Turn angle must also be identified
-            byte iturn = identifyAngle(direc, PathOneA[a][3]);
-
+            int iturn = identifyAngle(direc, PathOneT[a][2]);
+            Serial.println(iturn);
+            Serial.println(PathOneT[a][2]);
             if(iturn==0)
-                counter++;
+            { 
+              counter++;  
+              //Last instruction must be added manually in case turn is not made in the last move
+              if(a==Rlen1-1)
+                {
+                  //Interim data object
+                  finalInstruct fi;
+                  fi.turnAngle = turn;
+                  fi.rep = counter;
+                  //debug
+                  Serial.print(fi.turnAngle);
+                  Serial.print(" , ");
+                  Serial.println(fi.rep);
+                  //Add to queue
+                  FinalQueue.push(fi);
+                }
+            }
 
             else//if the direction is changing then the previous instruction must be added to the final queue
             {
@@ -703,145 +752,144 @@ void IdentifyPath(){
                 finalInstruct fi;
                 fi.turnAngle = turn;
                 fi.rep = counter;
-
+                //debug
+                Serial.print(fi.turnAngle);
+                Serial.print(" , ");
+                Serial.println(fi.rep);
                 //Add to queue
                 FinalQueue.push(fi);
 
                 //Reset variables
                 counter = 1;
                 turn = iturn;
-                direc = PathOneA[a][3];
+                direc = PathOneT[a][2];
             }
         }
     }
     else
     {   //Here additionally an interim stack(Makes inverting of instructions easier) must be introduced as the path if from center to start
         StackList<finalInstruct> iStack;
-
+        //debug
+        Serial.println("Stack List update check - ");
         PathFinal = 2;
         //If the Shortest Path is PathOne, create the final run instructions
         direc = globalHeading;
-
-        turn = identifyAngle(direc, PathTwoA[0][3]);
-        direc = PathTwoA[0][3];
+        Serial.println(direc);
+        turn = identifyAngle(direc, PathTwoT[0][2]);
+        Serial.println(turn);
+        direc = PathTwoT[0][2];
+        Serial.println(direc);
         counter=1;
         for(int a=1;a<Rlen2;a++)
         {
             //Turn angle must also be identified
-            byte iturn = identifyAngle(direc, PathTwoA[a][3]);
-
+            int iturn = identifyAngle(direc, PathTwoT[a][2]);
+            Serial.println(iturn);
+            Serial.println(PathOneT[a][2]);
             if(iturn==0)
-                counter++;
+            {    
+              counter++;
+              //Last instruction must be added manually in case turn is not made in the last move
+              if(a==Rlen2-1)
+                {
+                  //Interim data object
+                  finalInstruct fi;
+                  //Turn angle must be inverted for the sake of easiness to convert to final queue
+                  fi.turnAngle = turn;
+                  fi.rep = counter;
+                  //debug
+                  Serial.print(fi.turnAngle);
+                  Serial.print(" , ");
+                  Serial.println(fi.rep);
+                  //Add to queue
+                  iStack.push(fi);
+                }
+            }
 
             else//if the direction is changing then the previous instruction must be added to the final queue
             {
                 //Interim data object
                 finalInstruct fi;
                 //Turn angle must be inverted for the sake of easiness to convert to final queue
-                fi.turnAngle = invertAngle(turn);
+                fi.turnAngle = turn;
                 fi.rep = counter;
-
+                //debug
+                Serial.print(fi.turnAngle);
+                Serial.print(" , ");
+                Serial.println(fi.rep);
                 //Add to queue
                 iStack.push(fi);
 
                 //Reset variables
                 counter = 1;
                 turn = iturn;
-                direc = PathTwoA[a][3];
+                direc = PathTwoT[a][2];
             }
         }
         int Rlen3 = iStack.count();
         //Now the inversion of the instructions to a queue to be followed can be done
+        //debug
+        Serial.println("Queue List update check - ");
         for(int a=0;a<Rlen3;a++)
         {
             //Interim data object
             finalInstruct fi;
             fi = iStack.pop();
+            fi.turnAngle = invertAngle(fi.turnAngle);
+            //debug
+            Serial.print(fi.turnAngle);
+            Serial.print(" , ");
+            Serial.println(fi.rep);
             FinalQueue.push(fi);
 
         }
-    }
+    }  
 }
 
-byte identifyAngle(byte oldDir, byte newDir)
+int identifyAngle(byte oldDir, byte newDir)
 {
+    if(((oldDir==1)&&(newDir==4))||((oldDir==4)&&(newDir==2))||((oldDir==2)&&(newDir==8))||((oldDir==8)&&(newDir==1)))
+    return 90;
+
+    else if(((oldDir==4)&&(newDir==1))||((oldDir==2)&&(newDir==4))||((oldDir==8)&&(newDir==2))||((oldDir==1)&&(newDir==8)))
+    return -90;
+
+    else if(((oldDir==1)&&(newDir==1))||((oldDir==2)&&(newDir==2))||((oldDir==4)&&(newDir==4))||((oldDir==8)&&(newDir==8)))
+    return 0;
+    
+    else if(((oldDir==2)&&(newDir==1))||((oldDir==1)&&(newDir==2))||((oldDir==8)&&(newDir==4))||((oldDir==4)&&(newDir==8)))
+    return 180;
+
+    
 
 }
 
-byte invertAngle(byte a)
+int invertAngle(int a)
 {
-
+    if(a==90)
+    return -90;
+    else if(a==(-90))
+    return 90;
+    else
+    return 180;
 }
 
 void FastRun()
-{
-
-}
-
-
-/*void reflood(){
-  //Refill the maze for most optimistic values, but now the maze has walls
-  instantiateReflood();
-
-  //Run flood fill but without actual motion
-  coord desired[] = {{X/2-1,Y/2-1},{X/2-1,Y/2},{X/2,Y/2-1},{X/2,Y/2}};
-  coord currCoord = {0,0};
-  floodFill(desired, currCoord, false);
-
-  //Now, the robot is still at the start, but the maze distance values have been updated with the walls discovered
-  //So we follow the maze creating instructions
-  createSpeedQueue();
-  //We now have a queue of instructions.
-
-}
-
-//Trace the maze back to the end creating instructions and adding them to the queue
-void createSpeedQueue(){
-  coord workingCoord = globalCoord;
-  byte workingDir = globalHeading;
-  int workingDist = 0;
-  while((workingCoord.x!=globalEnd.x)&&(workingCoord.y!=globalEnd.y)){
-    byte optimalDir = orient(workingCoord, workingDir);
-    coord nextCoord = bearingCoord(workingCoord, optimalDir);
-    if((nextCoord.x!=globalEnd.x)&&(nextCoord.y!=globalEnd.y))
+{//debug - For now print the final instructions
+  Serial.println("Final - ");
+    while(!(FinalQueue.isEmpty()))
     {
-        byte nextOptimalDir = orient(nextCoord,optimalDir);
-        //If the direction is the same, accumulate distance
-        if(optimalDir==workingDir){
-          workingDist+=7.74;
-        }
-        if(optimalDir==nextOptimalDir){
-          workingDist+=7.74;
-          continue;
-        }
-        else{
-          //if the optimal is different from the working, add the working and the accumulated distance
-          workingDist+=7.74;
-          instruction nextInstruction = {workingDist, optimalDir};
-          instructions.push(nextInstruction);
-          //Reset the distance to one square and update the workingDir
-          workingDist = 0;
-          workingDir = optimalDir;
+    finalInstruct fi = FinalQueue.pop();
+    Serial.print(fi.turnAngle);
+    Serial.print(",");
+    Serial.println(fi.rep);
     }
-    }
-    else
-    {
-      workingDist+=7.74;
-      instruction nextInstruction = {workingDist, optimalDir};
-      instructions.push(nextInstruction);
-      return;
-    }
-    //update workingCoord to the next optimal coord
-    workingCoord = nextCoord;
-  }
 }
-
-
-*/
 
 void loop() {
   // put your main code here, to run repeatedly:
-  Serial.println("Test Maze");
+  // debug
+  /*Serial.println("Test Maze");
   for(int i=Y-1;i>=0;i--)
     {for(int j=0;j<X;j++)
       {Serial.print(Test[i][j]);
@@ -872,12 +920,16 @@ void loop() {
      Serial.println();
     }
   Serial.println();
+  */
   Path=1;
   desiredlen = 4;
   coord desired[] = {{X/2-1,Y/2-1},{X/2-1,Y/2},{X/2,Y/2-1},{X/2,Y/2}};
+  //debug
+  Serial.println("First Run Instructions - ");
   floodFill(desired, globalCoord, false);
-
-  Serial.println("Reached the Center, Current coord - ");
+  Serial.println("Done");
+  // debug
+  /*Serial.println("Reached the Center, Current coord - ");
   Serial.print(globalCoord.y);
   Serial.print(",");
   Serial.println(globalCoord.x);
@@ -904,16 +956,14 @@ void loop() {
     }
       
   delay(5000);
-  
+  */
   //Return to the start
   Path=2;
-  globalCoord.y=8;
-  globalCoord.x=8;
   coord returnCoord[] = {{0,0}};
   resetToCoord(returnCoord[0]);
   desiredlen = 1;
-
-  Serial.println("Initial Distance Values");
+  // debug
+  /*Serial.println("Initial Distance Values");
 
   for(int i=Y-1;i>=0;i--)
     {for(int j=0;j<X;j++)
@@ -923,9 +973,14 @@ void loop() {
      Serial.println();
     }
   Serial.println();
-  
+  */
+  //debug
+  Serial.println("Second Run Instructions - ");
   floodFill(returnCoord, globalCoord, false);
-
+  Serial.println("Done");
+  
+  //debug
+  /*
   Serial.println("Reached the Start");
   Serial.println("Final Wall Values");
   
@@ -947,6 +1002,8 @@ void loop() {
       }
      Serial.println();
     }
+  */
+  Serial.println("Starting Path ID");
   //Post FloodFill refining of the queues holding the paths and identifying the shortest path
     IdentifyPath();
   //Now that the final run instruction queue is prepared, go for the final fast run
