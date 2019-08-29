@@ -1,4 +1,4 @@
-//Last Update -> 27-8-19
+//Last Update -> 29-8-19
 //Author : Divyesh Narayanan
 
 /*
@@ -68,6 +68,7 @@ QueueList<instruction> PathOne;
 QueueList<instruction> PathTwo;
 
 int r=0;
+int br=1;
 
 struct finalInstruct //Data structure for usage of the final queue
 {
@@ -525,7 +526,7 @@ void instantiateReflood(){
   }
 }
 
-void IdentifyPath(){
+void IdentifyPath(coord desired[]){
     int len1=0, len2=0;
     len1 = PathOne.count();
     len2 = PathTwo.count();
@@ -710,7 +711,7 @@ void IdentifyPath(){
     //debug review direc initial value
     byte direc=1;//For keeping track of the direction of the above stated purpose
     int turn =0;//Angle to be turned
-    if(Rlen1<Rlen2)
+    if(Rlen1>Rlen2)
     {   Serial.println("First path - ");
         PathFinal = 1;
         //If the Shortest Path is PathOne, create the final run instructions
@@ -721,8 +722,15 @@ void IdentifyPath(){
         direc = PathOneT[0][2];
         Serial.println(direc);
         counter=1;
+        br=1;
         for(int a=1;a<Rlen1;a++)
         {   
+          if(br==1){
+            coord coor;
+          coor.x= PathOneT[a][0];
+          coor.y= PathOneT[a][1];
+          if(isEnd(coor, desired))
+          br++;
             //Turn angle must also be identified
             int iturn = identifyAngle(direc, PathOneT[a][2]);
             Serial.println(iturn);
@@ -731,7 +739,7 @@ void IdentifyPath(){
             { 
               counter++;  
               //Last instruction must be added manually in case turn is not made in the last move
-              if(a==Rlen1-1)
+              if((a==Rlen1-1)||(br!=1))
                 {
                   //Interim data object
                   finalInstruct fi;
@@ -765,32 +773,36 @@ void IdentifyPath(){
                 direc = PathOneT[a][2];
             }
         }
+        }
     }
     else
-    {   //Here additionally an interim stack(Makes inverting of instructions easier) must be introduced as the path if from center to start
-        StackList<finalInstruct> iStack;
-        //debug
-        Serial.println("Stack List update check - ");
+    {   //Access the array from the last and invert the directions, then run the same algo as the first path
         PathFinal = 2;
         //If the Shortest Path is PathOne, create the final run instructions
         direc = globalHeading;
         Serial.println(direc);
-        turn = identifyAngle(direc, PathTwoT[0][2]);
-        Serial.println(turn);
-        direc = PathTwoT[0][2];
-        Serial.println(direc);
+        turn = identifyAngle(direc, oppHeading(PathTwoT[Rlen2-1][2]));
+        //Serial.println(turn);
+        direc = oppHeading(PathTwoT[Rlen2-1][2]);
+        //Serial.println(direc);
         counter=1;
-        for(int a=1;a<Rlen2;a++)
-        {
+        br=1;
+        for(int a=Rlen2-2;a>=0;a--)
+        { if(br==1)
+          {coord coor;
+          coor.x= PathTwoT[a][0];
+          coor.y= PathTwoT[a][1];
+          if(isEnd(coor, desired))
+          br++;
             //Turn angle must also be identified
-            int iturn = identifyAngle(direc, PathTwoT[a][2]);
-            Serial.println(iturn);
-            Serial.println(PathOneT[a][2]);
+            int iturn = identifyAngle(direc, oppHeading(PathTwoT[a][2]));
+            //Serial.println(iturn);
+            //Serial.println(oppHeading(PathOneT[a][2]));
             if(iturn==0)
             {    
               counter++;
               //Last instruction must be added manually in case turn is not made in the last move
-              if(a==Rlen2-1)
+              if((a==0)||(br!=1))
                 {
                   //Interim data object
                   finalInstruct fi;
@@ -802,7 +814,7 @@ void IdentifyPath(){
                   Serial.print(" , ");
                   Serial.println(fi.rep);
                   //Add to queue
-                  iStack.push(fi);
+                  FinalQueue.push(fi);
                 }
             }
 
@@ -818,30 +830,15 @@ void IdentifyPath(){
                 Serial.print(" , ");
                 Serial.println(fi.rep);
                 //Add to queue
-                iStack.push(fi);
+                FinalQueue.push(fi);
 
                 //Reset variables
                 counter = 1;
                 turn = iturn;
-                direc = PathTwoT[a][2];
+                direc = oppHeading(PathTwoT[a][2]);
             }
+        
         }
-        int Rlen3 = iStack.count();
-        //Now the inversion of the instructions to a queue to be followed can be done
-        //debug
-        Serial.println("Queue List update check - ");
-        for(int a=0;a<Rlen3;a++)
-        {
-            //Interim data object
-            finalInstruct fi;
-            fi = iStack.pop();
-            fi.turnAngle = invertAngle(fi.turnAngle);
-            //debug
-            Serial.print(fi.turnAngle);
-            Serial.print(" , ");
-            Serial.println(fi.rep);
-            FinalQueue.push(fi);
-
         }
     }  
 }
@@ -1003,9 +1000,10 @@ void loop() {
      Serial.println();
     }
   */
+  desiredlen = 4;
   Serial.println("Starting Path ID");
   //Post FloodFill refining of the queues holding the paths and identifying the shortest path
-    IdentifyPath();
+    IdentifyPath(desired);
   //Now that the final run instruction queue is prepared, go for the final fast run
     FastRun();
 
